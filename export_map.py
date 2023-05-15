@@ -7,7 +7,6 @@ from folium import plugins
 import gtfs, data # local imports
 
 from utils import makeBeautifyIcon
-from mapparser import convert_to_png
 
 vectorTileLayerStyles = {}
 
