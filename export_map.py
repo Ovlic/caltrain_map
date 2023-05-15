@@ -42,8 +42,11 @@ folium.map.CustomPane("labels").add_to(m)
 # m.add_child(vc)
 
 
-
-shapes_raw = open("shapes.txt").read()
+try:
+    shapes_raw = open("shapes.txt").read()
+except FileNotFoundError:
+    raise FileNotFoundError("Could not find shapes.txt. Did you download the gtfs feed? (check comment below)")
+    # http://api.511.org/transit/datafeeds?api_key=[your_key]&operator_id=CT
 shapes = gtfs.convert_shape_gtfs_to_shape(shapes_raw)
 shape_ids = sorted([*set([x.shape_id for x in shapes])])
 shape_ids.pop(shape_ids.index("p_1425796"))
