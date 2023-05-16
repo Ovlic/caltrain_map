@@ -1,19 +1,24 @@
 
-
-import folium, json, os, io, time
+# Imports
+import folium, json, os, io, time, sys
 from PIL import Image
 from selenium import webdriver
 from folium import plugins
-import gtfs, data # local imports
 
+# Check if os is windows (for webdriver)
+if sys.platform == "win32": # Running windows
+    from webdriver_manager.chrome import ChromeDriverManager # Webdriver manager for windows
+
+# Local imports
+import gtfs
+from data import CaltrainData
 from utils import makeBeautifyIcon
 
-vectorTileLayerStyles = {}
+delay = 1 # Delay for loading the map
+file_name = "testmap_custom.html" # Default filename to save the map to
+ct_data = CaltrainData("c5a00e4e-b8a4-40cd-b650-a89fc139d2f8") # Create the CaltrainData object with the 511.org api key
 
-#import gtfs_testing.gtfs as gtfs, folium, gtfs_testing.color_list as color_list, random
-file_name = "testmap_custom.html"
-ct_data = data.CaltrainData("c5a00e4e-b8a4-40cd-b650-a89fc139d2f8")
-
+# Create the map
 m = folium.Map(
     location=[37.389951149, -121.98964476585], 
     # tiles=None,
@@ -23,74 +28,48 @@ m = folium.Map(
     attributionControl=False,
     )
 
+# Add labels so the train icons are on top
+folium.map.CustomPane("labels").add_to(m)
+
 # Train colors (route_color, route_text_color):
 # local: c5c5c5, 000000
 # limited: ffcc4a, 000000
 # bullet: E31837, ffffff
 
+shapes_raw = open("shapes.txt").read() # Get the train line shapes
+shapes = gtfs.convert_shape_gtfs_to_shape(shapes_raw) # Convert csv to objects
+shape_ids = sorted([*set([x.shape_id for x in shapes])]) # Sort in order
+shape_ids.pop(shape_ids.index("p_1425796")) # Remove bad shapes
+shape_ids.pop(shape_ids.index("p_1425704")) # Remove bad shapes
 
-
-
-folium.map.CustomPane("labels").add_to(m)
-
-#options = {
-#    "vectorTileLayerStyles": vectorTileLayerStyles
-#}
-
-# vc = plugins.VectorGridProtobuf(url, "folium_layer_name", options)
-
-# m.add_child(vc)
-
-
-try:
-    shapes_raw = open("shapes.txt").read()
-except FileNotFoundError:
-    raise FileNotFoundError("Could not find shapes.txt. Did you download the gtfs feed? (check comment below)")
-    # http://api.511.org/transit/datafeeds?api_key=[your_key]&operator_id=CT
-shapes = gtfs.convert_shape_gtfs_to_shape(shapes_raw)
-shape_ids = sorted([*set([x.shape_id for x in shapes])])
-shape_ids.pop(shape_ids.index("p_1425796"))
-shape_ids.pop(shape_ids.index("p_1425704"))
-
-stops_raw = open("stops.txt").read()
-stops = gtfs.convert_stop_gtfs_to_stop(stops_raw)
-
-"""for stop in stops:
-    tempstop = stop.stop_id.replace('"', '')
-    print(f"'{tempstop}'")
-    if tempstop.isnumeric():
-        print(f"    {tempstop} is numeric")
-        stops.pop(stops.index(stop))
-    elif tempstop.isupper():
-        print(f"    {tempstop} is upper")
-        stops.pop(stops.index(stop))"""
-
-
-shape_ids = ["p_1425699"]
+# Add line to map
+shape_ids = ["p_1425699"] # Valid line shape
 for shape_id in shape_ids:
-    line = [x for x in shapes if x.shape_id == shape_id]
-    print(type(line))
-    print(len(line))
-    line_coords = [(float(x.shape_pt_lat), float(x.shape_pt_lon)) for x in line]
-    folium.PolyLine(
+    line = [x for x in shapes if x.shape_id == shape_id] # Get the line
+    line_coords = [(float(x.shape_pt_lat), float(x.shape_pt_lon)) for x in line] # Convert to coords
+    folium.PolyLine( # Add the line to the map
         line_coords,
         color="#dd1f29",
         #tooltip=line[0].shape_id,
         ).add_to(m)
 
-for stop in stops:
-    # print(stop.stop_id)
-    tempstop = stop.stop_id.replace('"', '')
-    if tempstop.isnumeric():
+
+stops_raw = open("stops.txt").read() # Get the train stops
+stops = gtfs.convert_stop_gtfs_to_stop(stops_raw) # Convert csv to objects
+
+# Add stops to map and remove duplicate and bad stops
+for stop in stops: # Loop through stops
+    tempstop = stop.stop_id.replace('"', '') # Remove quotes
+    if tempstop.isnumeric(): # If the stop is numeric, remove it
         print(f"    {tempstop} is numeric")
         stops.pop(stops.index(stop))
-        continue
-    elif tempstop.isupper():
+        continue # Next stop
+    elif tempstop.isupper(): # If the stop is upper, remove it
         print(f"    {tempstop} is upper")
         stops.pop(stops.index(stop))
-        continue
+        continue # Next stop
 
-    folium.Marker(
+    folium.Marker( # Create the marker for the stop and give it css elements
         location=[float(stop.stop_lat), float(stop.stop_lon)],
         popup=stop.stop_name,
         icon=makeBeautifyIcon(
@@ -106,16 +85,20 @@ for stop in stops:
 
     print(f"    {tempstop} is good")
 
+# Get the vehicle locations
+vehicles_raw = ct_data.get_vehicle_locations()#.json()['Siri']['ServiceDelivery']['VehicleMonitoringDelivery']['VehicleActivity']
 
-vehicles_json = ct_data.get_vehicle_locations().json()['Siri']['ServiceDelivery']['VehicleMonitoringDelivery']['VehicleActivity']
+if sys.platform == "win32": # Running windows (json parsing issues?)
+    vehicles_json = json.loads(vehicles_json.text.encode().decode("utf-8-sig"))['Siri']['ServiceDelivery']['VehicleMonitoringDelivery']['VehicleActivity']
+else:
+    vehicles_json = vehicles_raw.json()['Siri']['ServiceDelivery']['VehicleMonitoringDelivery']['VehicleActivity']
 vehicles = []
 
-for vehicle in vehicles_json:
-    vehicles.append(gtfs.VehicleActivity(vehicle))
+for vehicle in vehicles_json: # Loop through vehicles
+    vehicles.append(gtfs.VehicleActivity(vehicle)) # Convert to object
 
-print(len(vehicles))
-for vehicle in vehicles:
-    folium.Marker(
+for vehicle in vehicles: # Loop through vehicles
+    folium.Marker( # Create custom icon for vehicle
         location=[vehicle.monitored_vehicle_journey.VehicleLocation.Latitude, vehicle.monitored_vehicle_journey.VehicleLocation.Longitude],
         popup=f"{vehicle.monitored_vehicle_journey.PublishedLineName} {vehicle.monitored_vehicle_journey.DirectionRef} ({vehicle.monitored_vehicle_journey.VehicleRef})",
         tooltip="Hi! Im a vehicle!eeee",
@@ -128,35 +111,32 @@ for vehicle in vehicles:
         )).add_to(m)
 
 
-m.save(file_name)
-# ones that are bad: 1425796, 1425704
-# good but not 1277432
-# 1277433
+m.save(file_name) # Save the map to a file
 
+# Convert to png image
 
-# await asyncio.sleep(1)
-# parse_map(file_name)
+tmpurl = f"file://{os.getcwd()}/{file_name}" # Get the file path
 
-delay=1
-
-tmpurl='file://{path}/{mapfile}'.format(path=os.getcwd(),mapfile=file_name)
-# m.save(file_name)
-
-
-options = webdriver.ChromeOptions()
+# Set up the webdriver
+options = webdriver.ChromeOptions() 
 options.add_argument("--headless")
 options.add_argument("--window-size=1200,875")
 
-browser = webdriver.Chrome(options=options)
+# Initialize the webdriver
+if sys.platform == "win32": # Running windows
+    # Windows requires you to preinstall the webdriver, this will automatically download it
+    browser = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+else:
+    browser = webdriver.Chrome(options=options)
 
-browser.get(tmpurl)
-print(browser.get_window_size())
+browser.get(tmpurl) # Load the map
+# print(browser.get_window_size())
+
 #Give the map tiles some time to load
 time.sleep(delay)
-# browser.save_screenshot(png_name)
 
-temp = io.BytesIO(browser.get_screenshot_as_png())
-image = Image.open(temp)
-image.show()
+# Convert the map to an image
 
- 
+temp = io.BytesIO(browser.get_screenshot_as_png()) # Take a screenshot and save it as bytes
+image = Image.open(temp) # Open the image from the bytes
+image.show() # Show the image in the default image viewer
