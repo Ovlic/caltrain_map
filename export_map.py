@@ -99,7 +99,7 @@ for vehicle in vehicles_json: # Loop through vehicles
 
 for vehicle in vehicles: # Loop through vehicles
     folium.Marker( # Create custom icon for vehicle
-        location=[vehicle.monitored_vehicle_journey.VehicleLocation.Latitude, vehicle.monitored_vehicle_journey.VehicleLocation.Longitude],
+        location=[vehicle.monitored_vehicle_journey.VehicleLocation.latitude, vehicle.monitored_vehicle_journey.VehicleLocation.longitude],
         popup=f"{vehicle.monitored_vehicle_journey.PublishedLineName} {vehicle.monitored_vehicle_journey.DirectionRef} ({vehicle.monitored_vehicle_journey.VehicleRef})",
         tooltip="Hi! Im a vehicle!eeee",
         #pane="labels",
