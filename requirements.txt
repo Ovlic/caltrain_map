@@ -1,0 +1,5 @@
+folium
+selenium
+pytz
+requests
+webdriver-manager; platform_system == "Windows"
