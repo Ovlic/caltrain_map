@@ -1,3 +1,6 @@
+"""
+This module contains functions to convert GTFS data to Python objects.
+"""
 
 from .shape import Shape
 from .stop import Stop

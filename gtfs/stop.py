@@ -1,3 +1,6 @@
+"""
+Support for GTFS stops.txt
+"""
 
 class Stop(object):
     """

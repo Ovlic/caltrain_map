@@ -1,3 +1,6 @@
+"""
+Support for Realtime Vehicle Activity GTFS data.
+"""
 
 from utils import toDateTime
 from datetime import datetime

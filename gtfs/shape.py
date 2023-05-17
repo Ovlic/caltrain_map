@@ -1,3 +1,6 @@
+"""
+Support for the GTFS shapes.txt file.
+"""
 
 class Shape(object):
     """
