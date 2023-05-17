@@ -17,7 +17,11 @@ class CaltrainData:
         self.session.params["agency"] = "CT"
 
     def get_vehicle_locations(self) -> requests.Response:
-        """Get live vehicle locations for Caltrain."""
+        """Get live vehicle locations for Caltrain.
+        # Returns:
+        :class:`requests.Response`
+            The response from the api.
+        """
         url = base_url + "VehicleMonitoring"
         response = self.session.get(url)
         return response
