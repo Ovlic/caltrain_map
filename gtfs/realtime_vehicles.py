@@ -1,5 +1,6 @@
 
 from utils import toDateTime
+from datetime import datetime
 
 class VehicleActivity(object):
     """
@@ -52,30 +53,51 @@ class VehicleActivity(object):
         self.monitored_vehicle_journey = MonitoredVehicleJourney(data['MonitoredVehicleJourney'])
 
     @property
-    def RecordedAtTime(self):
+    def RecordedAtTime(self) -> datetime:
+        """
+        The time the data was recorded.
+        # Returns:
+            :class:`datetime`
+               The time the data was recorded.
+        """
         return toDateTime(self.__data['RecordedAtTime'])
 
     @property
-    def ValidUntilTime(self):
+    def ValidUntilTime(self) -> str:
+        """
+        The time the data is valid until.
+        # Returns:
+            :class:`str`
+               The time the data is valid until.
+        """
         return self.__data['ValidUntilTime']
 
 
 class VehicleLocation(object):
     """
-    {
-        "Longitude": "-122.396133",
-        "Latitude": "37.775589"
-    }
+    Location Object
+    # Parameters:
+    data: :class:`dict`
+        The data from the api.
+
+    # Attributes:
+    Longitude: :class:`float`
+        The longitude of the vehicle.
+
+    Latitude: :class:`float`
+        The latitude of the vehicle.
     """
     def __init__(self, data):
         self.__data = data
 
     @property
-    def Longitude(self) -> float:
+    def longitude(self) -> float:
+        "The longitude of the vehicle."
         return float(self.__data['Longitude'])
 
     @property
-    def Latitude(self) -> float:
+    def latitude(self) -> float:
+        "The latitude of the vehicle."
         return float(self.__data['Latitude'])
 
 
