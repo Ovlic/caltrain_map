@@ -89,7 +89,7 @@ for stop in stops: # Loop through stops
 vehicles_raw = ct_data.get_vehicle_locations()#.json()['Siri']['ServiceDelivery']['VehicleMonitoringDelivery']['VehicleActivity']
 
 if sys.platform == "win32": # Running windows (json parsing issues?)
-    vehicles_json = json.loads(vehicles_json.text.encode().decode("utf-8-sig"))['Siri']['ServiceDelivery']['VehicleMonitoringDelivery']['VehicleActivity']
+    vehicles_json = json.loads(vehicles_raw.text.encode().decode("utf-8-sig"))['Siri']['ServiceDelivery']['VehicleMonitoringDelivery']['VehicleActivity']
 else:
     vehicles_json = vehicles_raw.json()['Siri']['ServiceDelivery']['VehicleMonitoringDelivery']['VehicleActivity']
 vehicles = []
