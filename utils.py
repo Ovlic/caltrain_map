@@ -37,7 +37,7 @@ def toDateTime(str_time) -> datetime:
     date = date.astimezone(timezone('US/Pacific'))
     return date
 
-@enforce_literals
+# @enforce_literals
 def makeBeautifyIcon(
     icon: Optional[str] = None,
     icon_shape: Optional[ICON_SHAPE] = "circle",
