@@ -1,22 +1,28 @@
 from datetime import datetime
 from pytz import timezone
 from folium.plugins import BeautifyIcon
-from typing import get_args, get_origin, Literal
+from typing import get_args, get_origin, Literal, Optional
 
-ICON_SHAPE = Literal[None, "circle", "marker", "circle-dot", "rectangle", "rectangle-dot", "doughnut"]
+ICON_SHAPE = Literal["circle", "marker", "circle-dot", "rectangle", "rectangle-dot", "doughnut"]
 
 
+# This is a decorator that will be used to check if arguments are valid
 def enforce_literals(function):
-    """Decorator to make sure no one passes in an invalid string."""
     def wrapper(*args, **kwargs): # This is the function that will be returned
         # Loop through the arguments and check if they are valid
         for i in range(len(function.__annotations__.items())):
             name, type_ = list(function.__annotations__.items())[i]
-            value = args[i]
-            options = get_args(type_)
+            if i >= len(args): # No more arguments
+                if name not in kwargs: # Check if the item is in the kwargs
+                    continue # Skip and let the function default to keyword argument
+                value = kwargs[name] # There is a kwarg argument so use that
+            else: # There is an argument
+                value = args[i] # Use the argument
+            print(f"name: {name}, type: {type_}, value: {value}")
+            options = get_args(type_) # Get the possible options
             if get_origin(type_) is Literal and value not in options: # If it is a list of possible strings and if the value is not in the list
                 raise AssertionError(f"'{value}' is not in {options} for '{name}'") # Raise error
-        function(*args, **kwargs) # Call the function
+        function(*args, **kwargs) # Call the original function
     return wrapper
 
 
@@ -31,19 +37,19 @@ def toDateTime(str_time) -> datetime:
     date = date.astimezone(timezone('US/Pacific'))
     return date
 
-# @enforce_literals
+@enforce_literals
 def makeBeautifyIcon(
-    icon:str=None,
-    icon_shape:str=None,
-    border_width:int=3,
-    border_color:str="#000",
-    text_color:str="#000",
-    background_color:str="#FFF",
-    inner_icon_style:str="",
-    spin:bool=False,
-    number:int=None,
-    icon_size:list=[22, 22],
-    icon_anchor:list=[],
+    icon: Optional[str] = None,
+    icon_shape: Optional[ICON_SHAPE] = "circle",
+    border_width: Optional[int] = 3,
+    border_color: Optional[str] = "#000",
+    text_color: Optional[str] = "#000",
+    background_color: Optional[str] = "#FFF",
+    inner_icon_style: Optional[str] = "",
+    spin: Optional[bool] = False,
+    number: Optional[int] = None,
+    icon_size: Optional[list] = [22, 22],
+    icon_anchor: Optional[list] = [],
     **kwargs
     ) -> BeautifyIcon:
     """Creates a BeautifyIcon object.
@@ -90,14 +96,16 @@ def makeBeautifyIcon(
     """
     if icon_anchor == []: # So it aligns to center instead
         icon_anchor = [icon_size[0]/2, icon_size[1]/2]
-    
-    return BeautifyIcon(
+    print(type(icon_shape))
+    i = BeautifyIcon(
         icon=icon,
         border_color=border_color,
         text_color=text_color,
-        icon_shape=icon_shape,
+        icon_shape=str(icon_shape),
         inner_icon_style=inner_icon_style,
         icon_size=icon_size,
         icon_anchor=icon_anchor,
         **kwargs
         )
+    print(i.options['iconShape'])
+    return i
