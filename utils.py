@@ -31,10 +31,10 @@ def toDateTime(str_time) -> datetime:
     date = date.astimezone(timezone('US/Pacific'))
     return date
 
-@enforce_literals
+# @enforce_literals
 def makeBeautifyIcon(
     icon:str=None,
-    icon_shape:ICON_SHAPE="circle",
+    icon_shape:str=None,
     border_width:int=3,
     border_color:str="#000",
     text_color:str="#000",
@@ -51,7 +51,7 @@ def makeBeautifyIcon(
     icon: :class:`str` = None
         The icon to use from either glyphicons or font-awesome.
 
-    icon_shape: :class:`ICON_SHAPE` = "circle"
+    icon_shape: :class:`str` = "circle"
         The shape of the icon. Valid options are "marker", "circle-dot", "rectangle", "rectangle-dot", "doughnut".
    
     border_width: :class:`int` = 3
