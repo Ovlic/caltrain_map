@@ -77,9 +77,9 @@ for stop in stops: # Loop through stops
             border_color="#000000",
             border_width=3,
             text_color="#b3334f",
-            icon_shape="circle",
             inner_icon_style="opacity: 0;",
             icon_size=[13, 13],
+            icon_shape="circle",
         )
     ).add_to(m)
 
@@ -102,7 +102,7 @@ for vehicle in vehicles: # Loop through vehicles
         location=[vehicle.monitored_vehicle_journey.VehicleLocation.latitude, vehicle.monitored_vehicle_journey.VehicleLocation.longitude],
         popup=f"{vehicle.monitored_vehicle_journey.PublishedLineName} {vehicle.monitored_vehicle_journey.DirectionRef} ({vehicle.monitored_vehicle_journey.VehicleRef})",
         tooltip="Hi! Im a vehicle!eeee",
-        #pane="labels",
+        pane="labels",
         icon=plugins.BeautifyIcon(
             icon="fa-solid fa-train",
             border_color=vehicle.monitored_vehicle_journey.icon_color, #"#DD1F29",
@@ -123,20 +123,23 @@ options.add_argument("--headless")
 options.add_argument("--window-size=1200,875")
 
 # Initialize the webdriver
+print("Initializing webdriver...")
 if sys.platform == "win32": # Running windows
     # Windows requires you to preinstall the webdriver, this will automatically download it
     browser = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 else:
     browser = webdriver.Chrome(options=options)
-
+print("Webdriver initialized!")
 browser.get(tmpurl) # Load the map
 # print(browser.get_window_size())
 
 #Give the map tiles some time to load
+print(f"Waiting {delay} seconds for map to load...")
 time.sleep(delay)
 
 # Convert the map to an image
-
+print("Converting map to image...")
 temp = io.BytesIO(browser.get_screenshot_as_png()) # Take a screenshot and save it as bytes
 image = Image.open(temp) # Open the image from the bytes
+print("Map converted to image!")
 image.show() # Show the image in the default image viewer
