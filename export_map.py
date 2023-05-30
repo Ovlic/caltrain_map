@@ -15,7 +15,7 @@ from data import CaltrainData
 from utils import makeBeautifyIcon
 
 delay = 1 # Delay for loading the map
-file_name = "testmap_custom.html" # Default filename to save the map to
+file_name = "themap.html" # Default filename to save the map to
 ct_data = CaltrainData("c5a00e4e-b8a4-40cd-b650-a89fc139d2f8") # Create the CaltrainData object with the 511.org api key
 
 # Create the map
